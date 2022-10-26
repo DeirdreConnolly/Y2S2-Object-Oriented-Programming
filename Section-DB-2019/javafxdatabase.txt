@@ -1,0 +1,412 @@
+package application;
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.ArrayList;
+
+
+public class AddC {
+
+   private static final String URL = "jdbc:derby:C:\\Users\\Denis.Long\\MyDB";
+   private static final String USERNAME = "";
+   private static final String PASSWORD = "";
+
+   private Connection connection = null; // manages connection
+ 
+   private PreparedStatement insertNewPerson = null; 
+    
+   // constructor
+   public AddC()
+   {
+      try 
+      {
+         connection = 
+            DriverManager.getConnection( URL, USERNAME, PASSWORD );
+
+        
+         insertNewPerson = connection.prepareStatement( 
+            "INSERT INTO Addresses " + 
+            "( FirstName, LastName, Email, PhoneNumber ) " + 
+            "VALUES ( ?, ?, ?, ? )" );
+      } // end try
+      catch ( SQLException sqlException )
+      {
+         sqlException.printStackTrace();
+         System.exit( 1 );
+      } // end catch
+   } // end PersonQueries constructor
+   
+   // select all of the addresses in the database
+ 
+   // add an entry
+   public int addPerson( 
+      String fname, String lname, String email, String num )
+   {
+      int result = 0;
+      
+      // set parameters, then execute insertNewPerson
+      try 
+      {
+         insertNewPerson.setString( 1, fname );
+         insertNewPerson.setString( 2, lname );
+         insertNewPerson.setString( 3, email );
+         insertNewPerson.setString( 4, num );
+
+         // insert the new entry; returns # of rows updated
+         result = insertNewPerson.executeUpdate(); 
+      } // end try
+      catch ( SQLException sqlException )
+      {
+         sqlException.printStackTrace();
+         close();
+      } // end catch
+      
+      return result;
+   } // end method addPerson
+   
+   // close the database connection
+   public void close()
+   {
+      try 
+      {
+         connection.close();
+      } // end try
+      catch ( SQLException sqlException )
+      {
+         sqlException.printStackTrace();
+      } // end catch
+   } // end method close
+} // end class PersonQueries
+
+
+
+
+package application;
+	
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+
+
+public class Main extends Application {
+	 private Person currentEntry;
+	   private AddC addC;
+	   private List< Person > results;   
+	   Button browseButton;
+	   private Label emailLabel;
+	   private TextField emailTextField;
+	   private Label firstNameLabel;
+	   private TextField firstNameTextField;
+	   private Label idLabel;
+	   private TextField idTextField;
+	   private TextField indexTextField;
+	   private Label lastNameLabel;
+	   private TextField lastNameTextField;
+	   private Panel displayPanel;   
+	   private Label phoneLabel;
+	   private TextField phoneTextField;
+	   private Button insertButton;
+	   private Button  quitButton;
+	   
+	@Override
+	public void start(Stage primaryStage) {
+		try {
+		//	BorderPane root = new BorderPane();
+		//	Scene scene = new Scene(root,400,400);
+			
+			  addC = new AddC(); 
+		      
+		      // create GUI
+		     
+		      idLabel = new Label();
+		      idTextField = new TextField(  );
+		      firstNameLabel = new Label();
+		      firstNameTextField = new TextField(  );
+		      lastNameLabel = new Label();
+		      lastNameTextField = new TextField(  );
+		      emailLabel = new Label();
+		      emailTextField = new TextField(  );
+		      phoneLabel = new Label();
+		      phoneTextField = new TextField(  );
+		      browseButton = new Button();
+		      insertButton = new Button();
+	          quitButton = new Button();
+		      idLabel.setText( "Address ID:" );
+		      idTextField.setEditable( false );
+
+
+		      firstNameLabel.setText( "First Name:" );
+		   
+
+		      lastNameLabel.setText( "Last Name:" );
+		     
+		      emailLabel.setText( "Email:" );
+		     
+
+		      phoneLabel.setText( "Phone Number:" );
+		     
+		     	      
+		      VBox layout = new VBox(10);
+			    layout.setPadding(new Insets(20, 20, 20, 20));
+			    layout.getChildren().addAll(idLabel,firstNameLabel,lastNameLabel,emailLabel,phoneLabel);
+			  VBox layout2 = new VBox(10);  
+					  layout2.getChildren().addAll(idTextField,firstNameTextField,lastNameTextField,emailTextField,phoneTextField);
+		      HBox r1 = new HBox(10);
+			    r1.getChildren().addAll(layout,layout2,insertButton,quitButton);
+			    
+			      
+
+		      
+		      
+		     
+
+		      insertButton.setText( "Insert New Entry" );
+		      insertButton.setOnAction(e->  insertButtonActionPerformed( ));
+		         
+		      quitButton.setText("Quit program");
+			    quitButton.setOnAction(e -> System.exit(0));// or window.close()
+			  
+
+			
+			Scene scene = new Scene(r1, 300, 250);
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	   private void insertButtonActionPerformed( ) 
+	   {
+	      int result = addC.addPerson( firstNameTextField.getText(),
+	         lastNameTextField.getText(), emailTextField.getText(),
+	         phoneTextField.getText() );
+	      
+	      if ( result == 1 ){
+	    	  Stage window = new Stage();
+	    	     //Block events to other windows
+	    	     window.initModality(Modality.APPLICATION_MODAL);
+	    	     window.setTitle("Dbcode");
+	    	     window.setMinWidth(250);
+	    	     Label label = new Label();
+	    	     label.setText("PersonAdded");
+	    	     Button closeButton = new Button("Close this window");
+	    	     closeButton.setOnAction(e -> window.close());
+	    	     VBox layout = new VBox(10);
+	    	     layout.getChildren().addAll(label, closeButton);
+	    	     layout.setAlignment(Pos.CENTER);
+	    	     //Display window and wait for it to be closed before returning
+	    	     Scene scene = new Scene(layout);
+	    	     window.setScene(scene);
+	    	      window.showAndWait();
+	      }
+	        
+	      else {
+	    	  Stage window = new Stage();
+	    	     //Block events to other windows
+	    	     window.initModality(Modality.APPLICATION_MODAL);
+	    	     window.setTitle("Error");
+	    	     window.setMinWidth(250);
+	    	     Label label = new Label();
+	    	     label.setText("Person not added!");
+	    	     Button closeButton = new Button("Close this window");
+	    	     closeButton.setOnAction(e -> window.close());
+	    	     VBox layout = new VBox(10);
+	    	     layout.getChildren().addAll(label, closeButton);
+	    	     layout.setAlignment(Pos.CENTER);
+	    	     //Display window and wait for it to be closed before returning
+	    	     Scene scene = new Scene(layout);
+	    	     window.setScene(scene);
+	    	      window.showAndWait();
+	    	  
+	      }
+	       
+	          
+	     
+	   } // end method insertButtonActionPerformed
+	public static void main(String[] args) {
+		launch(args);
+	}
+}
+package application;
+
+public class Person
+{
+   private int addressID;
+   private String firstName;
+   private String lastName;
+   private String email;
+   private String phoneNumber;
+
+   // no-argument constructor
+   public Person()
+   {
+   } // end no-argument Person constructor
+
+   // constructor
+   public Person( int id, String first, String last, 
+      String emailAddress, String phone )
+   {
+      setAddressID( id );
+      setFirstName( first );
+      setLastName( last );
+      setEmail( emailAddress );
+      setPhoneNumber( phone );
+   } // end five-argument Person constructor 
+
+   // sets the addressID
+   public void setAddressID( int id )
+   {
+      addressID = id;
+   } // end method setAddressID
+
+   // returns the addressID 
+   public int getAddressID()
+   {
+      return addressID;
+   } // end method getAddressID
+   
+   // sets the firstName
+   public void setFirstName( String first )
+   {
+      firstName = first;
+   } // end method setFirstName
+
+   // returns the first name 
+   public String getFirstName()
+   {
+      return firstName;
+   } // end method getFirstName
+   
+   // sets the lastName
+   public void setLastName( String last )
+   {
+      lastName = last;
+   } // end method setLastName
+
+   // returns the last name 
+   public String getLastName()
+   {
+      return lastName;
+   } // end method getLastName
+   
+   // sets the email address
+   public void setEmail( String emailAddress )
+   {
+      email = emailAddress;
+   } // end method setEmail
+
+   // returns the email address
+   public String getEmail()
+   {
+      return email;
+   } // end method getEmail
+   
+   // sets the phone number
+   public void setPhoneNumber( String phone )
+   {
+      phoneNumber = phone;
+   } // end method setPhoneNumber
+
+   // returns the phone number
+   public String getPhoneNumber()
+   {
+      return phoneNumber;
+   } // end method getPhoneNumber
+} // end class Person
+
+
+package application;
+
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+
+public class Controller {
+	   void insertButtonActionPerformed(String firstName, String lastName, String email, String phone ) 
+	   {
+		  
+		  AddC  addC = new AddC();
+		  int result = addC.addPerson( firstName, lastName, email,  phone );
+	      
+	      
+	      if ( result == 1 ){
+	    	  Stage window = new Stage();
+	    	     //Block events to other windows
+	    	     window.initModality(Modality.APPLICATION_MODAL);
+	    	     window.setTitle("Dbcode");
+	    	     window.setMinWidth(250);
+	    	     Label label = new Label();
+	    	     label.setText("PersonAdded");
+	    	     Button closeButton = new Button("Close this window");
+	    	     closeButton.setOnAction(e -> window.close());
+	    	     VBox layout = new VBox(10);
+	    	     layout.getChildren().addAll(label, closeButton);
+	    	     layout.setAlignment(Pos.CENTER);
+	    	     //Display window and wait for it to be closed before returning
+	    	     Scene scene = new Scene(layout);
+	    	     window.setScene(scene);
+	    	      window.showAndWait();
+	      }
+	        
+	      else {
+	    	  Stage window = new Stage();
+	    	     //Block events to other windows
+	    	     window.initModality(Modality.APPLICATION_MODAL);
+	    	     window.setTitle("Error");
+	    	     window.setMinWidth(250);
+	    	     Label label = new Label();
+	    	     label.setText("Person not added!");
+	    	     Button closeButton = new Button("Close this window");
+	    	     closeButton.setOnAction(e -> window.close());
+	    	     VBox layout = new VBox(10);
+	    	     layout.getChildren().addAll(label, closeButton);
+	    	     layout.setAlignment(Pos.CENTER);
+	    	     //Display window and wait for it to be closed before returning
+	    	     Scene scene = new Scene(layout);
+	    	     window.setScene(scene);
+	    	      window.showAndWait();
+	    	  
+	      }
+	   }      
+}
+
+
+
+
+ 
+
+
+
+
+
+
+
